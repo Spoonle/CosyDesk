@@ -4,10 +4,9 @@ import { Suspense, useEffect, useRef, type PointerEvent as ReactPointerEvent } f
 import { Maximize2, Minus, Minimize2, Square, X } from 'lucide-react';
 import { MODULE_MAP } from '@/modules/registry';
 import { useWindowStore, workspaceBounds, type SnapZone } from '@/stores/windows';
-import { EmptyState } from '@/components/glass';
 
 const SNAP_EDGE = 26;
-const TITLE_H = 42;
+const TITLE_H = 36;
 
 export function FloatingWindow({ windowId }: { windowId: string }) {
   const win = useWindowStore((s) => s.windows.find((w) => w.id === windowId));
@@ -19,6 +18,12 @@ export function FloatingWindow({ windowId }: { windowId: string }) {
   const setRect = useWindowStore((s) => s.setRect);
   const snap = useWindowStore((s) => s.snap);
   const setSnapPreview = useWindowStore((s) => s.setSnapPreview);
+
+  const isActive = useWindowStore((s) => {
+    const me = s.windows.find((w) => w.id === windowId);
+    if (!me) return false;
+    return s.windows.every((w) => w.id === windowId || w.z <= me.z || w.minimized || w.closing);
+  });
 
   const module = MODULE_MAP[windowId];
   const ref = useRef<HTMLDivElement | null>(null);
@@ -140,6 +145,9 @@ export function FloatingWindow({ windowId }: { windowId: string }) {
     <div
       ref={ref}
       className={clsx('floating-window glass-float', win.closing && 'is-closing')}
+      data-active={isActive || undefined}
+      data-maximized={win.maximized || undefined}
+      data-minimized={win.minimized || undefined}
       style={{
         left: win.x,
         top: win.y,
@@ -163,17 +171,17 @@ export function FloatingWindow({ windowId }: { windowId: string }) {
         <span className="fw-title-text">{module.title}</span>
         <span className="fw-controls">
           <button aria-label="Réduire" data-tooltip="Réduire" onClick={() => minimize(windowId)}>
-            <Minus size={13} />
+            <Minus size={13} strokeWidth={2} />
           </button>
           <button
             aria-label="Agrandir"
             data-tooltip={win.maximized ? 'Restaurer' : 'Agrandir'}
             onClick={() => toggleMaximize(windowId)}
           >
-            {win.maximized ? <Minimize2 size={12} /> : <Square size={11} />}
+            {win.maximized ? <Minimize2 size={11} /> : <Square size={10} />}
           </button>
           <button aria-label="Fermer" data-tooltip="Fermer" className="fw-close" onClick={() => close(windowId)}>
-            <X size={14} />
+            <X size={13} strokeWidth={2} />
           </button>
         </span>
       </div>
@@ -217,8 +225,4 @@ export function SnapPreview(): React.ReactNode {
       }}
     />
   );
-}
-
-export function WindowLoadError({ message }: { message: string }) {
-  return <EmptyState icon={<X size={30} />} title="Module indisponible" children={message} />;
 }

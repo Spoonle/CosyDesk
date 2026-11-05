@@ -40,11 +40,12 @@ import { toast } from '@/stores/toast';
 import { db } from '@/services/storage/db';
 import type { AppInfoDto } from '@/types/ipc';
 import { chime } from '@/services/notifications/notify';
+import { WorkspaceSection } from './WorkspaceSection';
 
-type Section = 'apparence' | 'performances' | 'general' | 'donnees' | 'apropos';
+type Section = 'espace' | 'apparence' | 'performances' | 'general' | 'donnees' | 'apropos';
 
 export default function SettingsModule(): React.ReactNode {
-  const [section, setSection] = useState<Section>('apparence');
+  const [section, setSection] = useState<Section>('espace');
 
   return (
     <div className="module-root">
@@ -52,7 +53,10 @@ export default function SettingsModule(): React.ReactNode {
         <h2>Paramètres</h2>
       </div>
       <div className="module-body">
-        <div className="segmented" style={{ marginBottom: 16 }}>
+        <div className="segmented settings-tabs" style={{ marginBottom: 16 }}>
+          <button data-active={section === 'espace'} onClick={() => setSection('espace')}>
+            Bureau
+          </button>
           <button data-active={section === 'apparence'} onClick={() => setSection('apparence')}>
             Apparence
           </button>
@@ -70,6 +74,7 @@ export default function SettingsModule(): React.ReactNode {
           </button>
         </div>
 
+        {section === 'espace' && <WorkspaceSection />}
         {section === 'apparence' && <AppearanceSection />}
         {section === 'performances' && <PerformanceSection />}
         {section === 'general' && <GeneralSection />}
@@ -88,7 +93,6 @@ function AppearanceSection(): React.ReactNode {
   const accent = useSettingsStore((s) => s.accent);
   const blur = useSettingsStore((s) => s.blurIntensity);
   const transparency = useSettingsStore((s) => s.transparency);
-  const reducedMotion = useSettingsStore((s) => s.reducedMotion);
   const setSettings = useSettingsStore((s) => s.setSettings);
   const resetAppearance = useSettingsStore((s) => s.resetAppearance);
 
@@ -188,14 +192,9 @@ function AppearanceSection(): React.ReactNode {
           <Slider value={transparency} min={0.6} max={1.4} step={0.05} onChange={(v) => setSettings({ transparency: v })} ariaLabel="Transparence" />
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <Toggle checked={reducedMotion} onChange={(v) => setSettings({ reducedMotion: v })} label="Réduire les animations" />
-          <div>
-            <div style={{ fontWeight: 600 }}>Réduire les animations</div>
-            <div className="text-muted" style={{ fontSize: 'var(--text-sm)' }}>
-              Respecte aussi la préférence système « animations réduites ».
-            </div>
-          </div>
+        <div className="text-muted" style={{ fontSize: 'var(--text-sm)' }}>
+          L’intensité des animations se règle dans <strong>Bureau → Ambiance</strong>
+          (un seul réglage pour toute l’application).
         </div>
 
         <div>
